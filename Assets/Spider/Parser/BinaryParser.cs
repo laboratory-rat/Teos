@@ -12,7 +12,7 @@ namespace Spider.Parser
 		public string FilePath;
 		private string _base;
 		
-		const string extension = ".xml";
+		const string extension = ".bin";
 		
 		public BinaryParser(string path, bool useRealPath = true){
 			FilePath = path;

@@ -56,6 +56,10 @@ namespace Spider.Controller {
 		}
 
 		public override void OnAppStop() {
+			SaveLog ();
+		}
+
+		public void SaveLog() {
 			if (_errors.Count == 0)
 				return;
 			_path = Path.Combine (Application.dataPath, ErrorDirectory);

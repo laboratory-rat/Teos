@@ -35,16 +35,15 @@ namespace Spider.Controller {
 		[SerializeField]
 		public bool ResetConfigOnStart = false;
 		[SerializeField]
-		public string ConfigName;
-		[SerializeField]
 		public ConfigUnit[] StandartConfig;
 
 		private IniParser _config;
 		private EventController _event;
 		string _path;
+		string _configName = "config";
 
 		public override void OnInit() {
-			_path = Path.Combine(Application.dataPath, ConfigName);
+			_path = Path.Combine(Application.dataPath, _configName);
 
 			if (!File.Exists (_path)) {
 				ResetConfigOnStart = true;
