@@ -29,8 +29,8 @@ namespace Spider.Controller {
 						if ( FindObjectsOfType(typeof(T)).Length > 1 )
 						{
 							Debug.LogError("[SpiderController] Something went really wrong " +
-							               " - there should never be more than 1 SpiderController!" +
-							               " Reopening the scene might fix it.");
+							               " - there should never be more than 1 <Type>Controller!" +
+							               " But programm will fix it.");
 							return _instance;
 						}
 						
@@ -48,9 +48,6 @@ namespace Spider.Controller {
 							Debug.Log("[SpiderController] An instance of " + typeof(T) + 
 							          " is needed in the scene, so '" + SpiderController +
 							          "' was created with DontDestroyOnLoad.");
-						} else {
-							Debug.Log("[SpiderController] Using instance already created: " +
-							          _instance.gameObject.name);
 						}
 					}
 					
@@ -73,7 +70,7 @@ namespace Spider.Controller {
 		}
 
 		public virtual void OnInit() {
-			Debug.Log ("Hello. My name is " + this.GetType ().ToString ());
+	
 		}
 
 		public virtual void OnUnInit() {

@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using Spider.Parser;
-using Spider.Controller;
 using System.Runtime.Serialization;
+using UnityEngine;
+using Spider;
+using Spider.Controller;
+using Spider.Parser;
 
 namespace Data {
 
@@ -39,15 +40,22 @@ namespace Data {
 			_prepared = false;
 		}
 
-		public virtual void SaveData(string dir) {
+		public virtual bool SaveData(string dir, out string e) {
+			e = "";
 			BinaryParser bp = new BinaryParser (dir);
 			bp.Save<Dictionary<string, T>> (this.name, _data);
+			return true;
 		}
 
-		public virtual bool LoadData(string dir) {
+		public virtual bool LoadData(string dir, out string e) {
+			e = "";
 			BinaryParser bp = new BinaryParser (dir);
 			_prepared = false;
-			return bp.TryLoad<Dictionary<string, T>> (this.name, ref _data);
+			if (!bp.TryLoad<Dictionary<string, T>> (this.name, ref _data)) {
+				e = "Can`t load data package whis name:" + name + " and type: " + this.name;
+				return false;
+			}
+			return true;
 		}
 
 		public virtual void Clear() {

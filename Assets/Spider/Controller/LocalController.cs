@@ -26,9 +26,14 @@ namespace Spider.Controller {
 				return;
 			}
 
-			_language = ConfigController.Instance.GetValue ("LANGUAGE", "GAME");
-			_file = Path.Combine (_path, _language + _ex);
+			_language = ConfigController.Instance.GetValue ("LANGUAGE", "GENERAL");
 
+			if (_language == "") {
+				Debug.LogWarning("No language parametr at config file. Localizator will not work.");
+				return;
+			}
+
+			_file = Path.Combine (_path, _language + _ex);
 
 			if (!File.Exists (_file)) {
 				Debug.LogWarning("No language " + _language);

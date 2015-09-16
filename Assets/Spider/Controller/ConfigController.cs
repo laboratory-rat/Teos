@@ -40,7 +40,7 @@ namespace Spider.Controller {
 		private IniParser _config;
 		private EventController _event;
 		string _path;
-		string _configName = "config";
+		string _configName = "config.ini";
 
 		public override void OnInit() {
 			_path = Path.Combine(Application.dataPath, _configName);
@@ -86,7 +86,8 @@ namespace Spider.Controller {
 		// Public config functions
 
 		public string GetValue(string key, string section = "") {
-			string value = (section == "") ? _config.GetSetting (key) : _config.GetSetting (key, section);
+			string value = "";
+			value += (section == "") ? _config.GetSetting (key) : _config.GetSetting (key, section);
 			return value.ToUpper ();
 		}
 

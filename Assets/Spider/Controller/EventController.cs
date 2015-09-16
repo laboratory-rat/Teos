@@ -47,7 +47,6 @@ public class EventController : SpiderController<EventController>, IController {
 			EventDelegate result = AddDelegate<T>(del);
 			
 			if(result != null){
-				// remember this is only called once
 				onceLookups[result] = true;
 			}
 		}
