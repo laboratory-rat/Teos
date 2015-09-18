@@ -69,7 +69,7 @@ namespace Spider.Parser
 			try
 			{
 				XmlSerializer xs = new XmlSerializer(typeof(T));
-				xs.Serialize(fs, file);
+				xs.Serialize(fs, file);	
 			}
 			catch(XmlException e)
 			{
