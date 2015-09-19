@@ -8,32 +8,30 @@ namespace Spdier.UI.Config{
 
 	public class ConfigBackuper : MonoBehaviour {
 
-		private IniParser _configBack;
-		private ConfigController _configC;
+		private Configuration _config;
+		private Configuration _backup;
 
 		void Start() { 
 
-			// Get config controller
+			// Get config and backup
+			_config = ConfigController.Instance.Config;
+			_backup = new Configuration (_config);
 
-			_configC = ConfigController.Instance;
-			_configBack = _configC.GetConfig();
 		}
 
-
-
 		public void SaveChanges() {
-			_configC.SaveConfig ();
-			_configBack = _configC.GetConfig ();
+			ConfigController.Instance.SaveConfig ();
+			_backup = new Configuration (_config);
 		}
 
 		public void RemoveChanges() {
-			_configC.SetConfig (_configBack);
+			ConfigController.Instance.ReplaceConfig (_backup);
+			_config = ConfigController.Instance.Config;
 		}
 
 
 		void OnEnable() {
-			if (_configC != null)
-				_configBack = _configC.GetConfig ();
+			Start ();
 		}
 
 	}

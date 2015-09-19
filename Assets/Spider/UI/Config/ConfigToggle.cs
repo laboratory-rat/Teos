@@ -31,10 +31,10 @@ namespace Spdier.UI.Config {
 		
 		public void ChangeValue(bool b) {
 			Value = (b) ? "1" : "0";
-			_configC.SetValue (KeySection.Key, Value, KeySection.Section);
+			_config.AddValue (Section, Key, Value);
 		}
 		
-		public override void GetValue (ConfigChanged cc)
+		public override void GetValue (ConfigChange cc)
 		{
 			base.GetValue (cc);
 			if ( (_toggle.isOn && Value == "1") || (!_toggle.isOn && Value == "0") )

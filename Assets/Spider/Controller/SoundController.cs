@@ -12,52 +12,74 @@ namespace Spider.Controller {
 		// Public attributes
 		[SerializeField]
 		public AudioMixer Mixer;
+
 		// Private attributes
 
-		ConfigController _configC;
 		EventController _eventC;
+		Configuration _config;
 
-		float _back;
-		float _effect;
-		float _sound;
-		float _general;
-		bool _enable;
-		float _oldGeneral;
+		float _music = 100f;
+		float _effect = 100f;
+		float _sound = 100f;
+		float _general = 100f;
+		bool _enable = true;
+		float _oldGeneral = 100f;
 
 		public override void OnInit() {
-			_configC = ConfigController.Instance;
 			_eventC = EventController.Instance;
+			_config = ConfigController.Instance.Config;
 
 			GetValues ();
-
-			_eventC.AddListener<ConfigChanged> (ChangeValue);
 		}
 
 		void GetValues() {
-			_back = float.Parse(_configC.GetValue ("BACKGROUND", "SOUND"));
-			_effect = float.Parse(_configC.GetValue ("EFFECT", "SOUND"));
-			_sound = float.Parse(_configC.GetValue ("SOUND", "SOUND"));
-			_general = float.Parse(_configC.GetValue ("GENERAL", "SOUND"));
-			_enable = (_configC.GetValue ("ENABLESOUND", "SOUND") == "1") ? true : false;
-			_oldGeneral = _general;
 
-			Mixer.SetFloat ("BACKGROUND", _back - 80f);
+			ConfigurationSection section = new ConfigurationSection ();
+			if (_config.TryGetSection ("sound", ref section)) {
+				foreach(ConfigurationUnit cu in section.Units) {
+					switch(cu.Key) {
+					case "GENERAL":
+						_general = float.Parse (cu.Value);
+						break;
+					case "MUSIC":
+						_music = float.Parse (cu.Value);
+						break;
+					case "EFFECT":
+						_effect = float.Parse(cu.Value);
+						break;
+					case "SOUND":
+						_sound = float.Parse(cu.Value);
+						break;
+					case "ENABLE":
+						int tmp = int.Parse(cu.Value);
+						_enable = (tmp == 1) ? true : false;
+						break;
+					default:
+						break;
+					}
+				}
+			} else {
+				Debug.LogWarning("No sound configuration! Will use default values.");
+			}
+
+			Mixer.SetFloat ("GENERAL", _general - 80f);
+			Mixer.SetFloat ("MUSIC", _music - 80f);
 			Mixer.SetFloat ("EFFECT", _effect - 80f);
 			Mixer.SetFloat("SOUND", _sound - 80f);
 
 			if (_enable) {
-				Mixer.SetFloat ("MASTER", _general - 80f);
+				Mixer.SetFloat ("GENERAL", _general - 80f);
 				_oldGeneral = 0f;
 			}
 			else {
 				_oldGeneral = _general;
-				Mixer.SetFloat ("MASTER", -80f);
+				Mixer.SetFloat ("GENERAL", -80f);
 			}
 		}
 
-		void ChangeValue(ConfigChanged cc) {
-			if (cc.FullConfig) {
-				GetValues ();
+		void ChangeValue(ConfigChange cc) {
+			if (cc.Full) {
+				GetValues();
 				return;
 			}
 			if (cc.Section != "SOUND")
@@ -81,8 +103,8 @@ namespace Spider.Controller {
 					Mixer.SetFloat ("MASTER", _general - 80f);
 				}
 			} else if (cc.Key == "BACKGROUND") {
-				_back = float.Parse (cc.Value);
-				Mixer.SetFloat ("BACKGROUND", _back - 80f);
+				_music = float.Parse (cc.Value);
+				Mixer.SetFloat ("BACKGROUND", _music - 80f);
 			} else if (cc.Key == "EFFECT") {
 				_effect = float.Parse (cc.Value);
 				Mixer.SetFloat ("EFFECT", _effect - 80f);

@@ -1,162 +1,219 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Spider.Parser;
-using System.IO;
 using Spider;
+using System.Collections.Generic;
+using Spider.Parser;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Spider.Controller {
 	
-	public class ConfigChanged : GameEvent {
-		public bool FullConfig = false;
-		public string Key = "";
-		public string Section = "";
-		public string Value = "";
+	public class ConfigChange : GameEvent {
 
-		public ConfigChanged(string key, string section, string value) {
-			Key = key;
-			Section = section;
-			Value = value;
-		}
-
-		public ConfigChanged() {
-			FullConfig = true;
-		}
-	}
-
-	[System.Serializable]
-	public struct ConfigUnit {
+		public string Section;
 		public string Key;
 		public string Value;
-		public string Section;
+		public bool Full = false;
+
+		public ConfigChange(string s, string k, string v) {
+			Section = s;
+			Key = k;
+			Value = v;
+		}
+
+		public ConfigChange() {
+			Full = true;
+		}
+
 	}
 
-	public class ConfigController : SpiderController<ConfigController>, IController {
+	public class ConfigurationUnit {
+		public ConfigurationUnit() { }
 
-		[SerializeField]
-		public bool ResetConfigOnStart = false;
-		[SerializeField]
-		public ConfigUnit[] StandartConfig;
+		[XmlAttribute("Key")]
+		public string Key;
+		[XmlAttribute("Value")]
+		public string Value;
 
-		private IniParser _config;
-		private EventController _event;
-		string _path;
-		string _configName = "config.ini";
+		public ConfigurationUnit(string k, string v){
+			Key = k.ToUpper();
+			Value = v.ToUpper();
+		}
+	}
 
-		public override void OnInit() {
-			_path = Path.Combine(Application.dataPath, _configName);
+	public class ConfigurationSection {
+		public ConfigurationSection() {}
+		[XmlAttribute("Name")]
+		public string Name;
+		[XmlArray("Units"), XmlArrayItem(typeof(ConfigurationUnit), ElementName = "Unit")]
+		public List<ConfigurationUnit> Units;
 
-			if (!File.Exists (_path)) {
-				ResetConfigOnStart = true;
-				File.Create(_path);
-			}
-			_config = new IniParser (_path);
-			if (ResetConfigOnStart) {
-				ResetConfig ();
-			} else {
-				foreach(ConfigUnit cu in StandartConfig) {
-					cu.Key.ToUpper();
-					cu.Value.ToUpper();
-					if (cu.Section != "") 
-						cu.Section.ToUpper();
-				}
-				_config.SaveSettings();
-				foreach (ConfigUnit ku in StandartConfig) {
-					string value = (ku.Section == "") ? _config.GetSetting(ku.Key) : _config.GetSetting(ku.Key, ku.Section);
-					if (value == "") {
-						ResetConfig();
-						break;
+		public ConfigurationSection(string name) {
+			Name = name.ToUpper ();
+			Units = new List<ConfigurationUnit> ();
+		}
+	}
+
+	public class Configuration {
+		[XmlArray("Sections"), XmlArrayItem(typeof(ConfigurationSection), ElementName = "Section")]
+		public List<ConfigurationSection> Sections { get; private set;}
+
+		public Configuration() {
+			Sections = new List<ConfigurationSection> ();
+		}
+
+		public Configuration(Configuration conf) {
+			Sections = new List<ConfigurationSection> (conf.Sections);
+		}
+
+		public bool TryGetValue(string section, string key, ref string value) {
+			section = section.ToUpper ();
+			key = key.ToUpper ();
+
+			foreach (ConfigurationSection cs in Sections) {
+				if (cs.Name == section) {
+					foreach(ConfigurationUnit cu in cs.Units) {
+						if (cu.Key == key) {
+							value = cu.Value;
+							return true;
+						}
 					}
 				}
 			}
-
-			_event = EventController.Instance;
+			return false;
 		}
 
-		private void ResetConfig() {
-			_config.ClearIni ();
-			foreach (ConfigUnit ku in StandartConfig) {
-				if (ku.Section == "")
-					_config.AddSetting(ku.Key.ToUpper(), ku.Value.ToUpper());
-				else
-					_config.AddSetting(ku.Key.ToUpper(), ku.Value.ToUpper(), ku.Section.ToUpper());
-			}
-			_config.SaveSettings ();
-		}
-
-		// Public config functions
-
-		public string GetValue(string key, string section = "") {
-			string value = "";
-			value += (section == "") ? _config.GetSetting (key) : _config.GetSetting (key, section);
-			return value.ToUpper ();
-		}
-
-		public bool SetValue(string key, string value, string section = "") {
-			key = key.ToUpper ();
+		public string GetValue(string section, string key) {
 			section = section.ToUpper ();
-			value = value.ToUpper ();
-			string test = (section == "") ? _config.GetSetting (key) : _config.GetSetting (key, section);
-			if (test == "") {
-				Debug.LogError("No section in config whith key = " + key + " and section = " + section);
-				return false;
+			key = key.ToUpper ();
+			
+			foreach (ConfigurationSection cs in Sections) {
+				if (cs.Name == section) {
+					foreach(ConfigurationUnit cu in cs.Units) {
+						if (cu.Key == key) {
+							return cu.Value;
+						}
+					}
+				}
 			}
-			if (value == test)
+			return "";
+		}
+
+		public bool TryGetSection (string section, ref ConfigurationSection sect) {
+			section = section.ToUpper ();
+			foreach (ConfigurationSection cs in Sections) {
+				if (cs.Name == section){
+					sect = cs;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public void AddValue(string section, string key, string value) {
+			section = section.ToUpper ();
+			key = key.ToUpper ();
+			value = value.ToUpper ();
+
+			foreach (ConfigurationSection cs in Sections) {
+				if (cs.Name == section) {
+					foreach(ConfigurationUnit cu in cs.Units) {
+						if (cu.Key == key) {
+							cu.Value = value;
+							EventController.Instance.TriggerEvent(new ConfigChange(section, key, value));
+							return;
+						}
+					}
+					cs.Units.Add(new ConfigurationUnit(key, value));
+					return;
+				}
+			}
+
+			ConfigurationSection sect = new ConfigurationSection(section);
+			sect.Units.Add (new ConfigurationUnit (key, value));
+			Sections.Add (sect);
+		}
+
+		public void AddSection(ConfigurationSection section) {
+			foreach (ConfigurationSection cs in Sections) {
+				if (cs.Name == section.Name)
+					return;
+			}
+			Sections.Add (section);
+		}
+
+	}
+
+	public class ConfigController : SpiderController<ConfigController>, IController {
+		[SerializeField]
+		public bool ResetOnInit = false;
+		public Configuration Config { get; private set;}
+
+		private string _configName = "Config";
+
+		public override void OnInit ()
+		{
+			Config = new Configuration ();
+			if (!ResetOnInit) {
+				if (!LoadConfig())
+					CreateNewConfig();
+				return;
+			}
+			else
+				CreateNewConfig ();
+		}
+
+
+		public void ReplaceConfig(Configuration conf) {
+			Config = conf;
+			EventController.Instance.TriggerEvent (new ConfigChange ());
+		}
+
+		public bool LoadConfig() {
+			XmlParser xml = new XmlParser ("");
+			Configuration tmpConfig = new Configuration ();
+			if (xml.TryLoad<Configuration> (_configName, ref tmpConfig)) { 
+				Config = tmpConfig;
 				return true;
-
-			if (section == "")
-				_config.AddSetting (key, value);
-			else 
-				_config.AddSetting (key, value, section);
-			_event.TriggerEvent (new ConfigChanged (key, section, value));
-			return true;
-		}
-
-		public bool SectionExists (string key, string section = "") {
-			key.ToUpper ();
-			section.ToUpper ();
-			string value = (section == "") ? _config.GetSetting (key) : _config.GetSetting (key, section);
-			if (value == "")
-				return false;
-			return true;
-		}
-
-		/// <summary>
-		/// Creates or rewrite new section.
-		/// </summary>
-		/// <param name="key">Key.</param>
-		/// <param name="value">Value.</param>
-		/// <param name="section">Section.</param>
-		public void CreateNewSection (string key, string value, string section = "") {
-			key.ToUpper ();
-			value.ToUpper ();
-			section.ToUpper ();
-			if (section == "") 
-				_config.AddSetting (key, value);
-			else 
-				_config.AddSetting (key, value, section);
-
-			_event.TriggerEvent (new ConfigChanged (key, section, value));
-		}
-
-		public IniParser GetConfig() {
-			return new IniParser(_config);
-		}
-
-		public void SetConfig(IniParser value) {
-			_config = new IniParser (value);
-			_config.SaveSettings ();
-			_event.TriggerEvent (new ConfigChanged ());
+			}
+			Debug.LogWarning ("Can`t load Config file");
+			return false;
 		}
 
 		public void SaveConfig() {
-			_config.SaveSettings ();
+			XmlParser xml = new XmlParser ("");
+			xml.Save<Configuration> (_configName, Config);
 		}
 
-		// On Quit App
+		public void CreateNewConfig() {
+			Config = new Configuration ();
 
-		public override void OnAppStop() {
-			if (_config != null)
-				_config.SaveSettings ();
+			ConfigurationSection general = new ConfigurationSection ("general");
+			general.Units.Add (new ConfigurationUnit ("Lang", "rus"));
+			Config.AddSection (general);
+
+			ConfigurationSection sound = new ConfigurationSection ("Sound");
+			sound.Units.Add (new ConfigurationUnit ("general", "100"));
+			sound.Units.Add (new ConfigurationUnit ("music", "100"));
+			sound.Units.Add (new ConfigurationUnit ("effect", "100"));
+			sound.Units.Add (new ConfigurationUnit ("sound", "100"));
+			sound.Units.Add (new ConfigurationUnit ("enable", "1"));
+			Config.AddSection (sound);
+
+			ConfigurationSection graph = new ConfigurationSection ("graphics");
+			graph.Units.Add (new ConfigurationUnit ("quality", "height"));
+			graph.Units.Add (new ConfigurationUnit ("resolution", "1600x900"));
+			graph.Units.Add (new ConfigurationUnit ("contrast", "100"));
+			graph.Units.Add (new ConfigurationUnit ("lightness", "100"));
+			Config.AddSection (graph);
+
+			SaveConfig ();
+		}
+
+		public override void OnAppStop ()
+		{
+			if (Config != null)
+				SaveConfig ();
 		}
 	}
 }

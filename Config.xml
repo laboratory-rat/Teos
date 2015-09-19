@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Sections>
+    <Section Name="GENERAL">
+      <Units>
+        <Unit Key="LANG" Value="RUS" />
+      </Units>
+    </Section>
+    <Section Name="SOUND">
+      <Units>
+        <Unit Key="GENERAL" Value="100" />
+        <Unit Key="MUSIC" Value="100" />
+        <Unit Key="EFFECT" Value="100" />
+        <Unit Key="SOUND" Value="100" />
+        <Unit Key="ENABLE" Value="1" />
+      </Units>
+    </Section>
+    <Section Name="GRAPHICS">
+      <Units>
+        <Unit Key="QUALITY" Value="HEIGHT" />
+        <Unit Key="RESOLUTION" Value="1600X900" />
+        <Unit Key="CONTRAST" Value="100" />
+        <Unit Key="LIGHTNESS" Value="100" />
+      </Units>
+    </Section>
+  </Sections>
+</Configuration>

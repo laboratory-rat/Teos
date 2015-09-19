@@ -15,10 +15,12 @@ namespace Spider.Controller {
 		IniParser _local = null;
 		string _path;
 		string _file;
+		Configuration _config = null;
 
 		public override void OnInit() {
 
 			_path = Path.Combine (Application.dataPath, _localPath);
+			EventController.Instance.AddListener<ConfigChange> (ConfigCha);
 
 			if (!Directory.Exists (_path)) {
 				Directory.CreateDirectory(_path);
@@ -26,9 +28,9 @@ namespace Spider.Controller {
 				return;
 			}
 
-			_language = ConfigController.Instance.GetValue ("LANGUAGE", "GENERAL");
+			_config = ConfigController.Instance.Config;
 
-			if (_language == "") {
+			if (!_config.TryGetValue ("general", "lang", ref _language)) {
 				Debug.LogWarning("No language parametr at config file. Localizator will not work.");
 				return;
 			}
@@ -41,6 +43,7 @@ namespace Spider.Controller {
 			}
 
 			_local = new IniParser (_localPath + _language + _ex);
+
 		}
 
 		public string Local(string key, string section) {
@@ -63,6 +66,12 @@ namespace Spider.Controller {
 			_local = new IniParser (_localPath + _language + _ex);
 			_language = name;
 			return true;
+		}
+
+		public void ConfigCha(ConfigChange cc) {
+			if (cc.Full && (cc.Section == "GENERAL" && cc.Value == "LANG")) {
+				ChangeLocal(cc.Value);
+			}
 		}
 
 		public string GetLanguage() {

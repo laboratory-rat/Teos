@@ -12,42 +12,45 @@ namespace Spdier.UI.Config {
 
 	public class ConfigStream : MonoBehaviour
 	{
-		public string Value = "";
 		[SerializeField]
-		public SectionPair KeySection;
+		public string Section = "";
+		[SerializeField]
+		public string Key = "";
+		public string Value = "";
 
 		protected ConfigController _configC;
 		protected EventController _eventC;
 		protected string _error = "";
 
+		protected Configuration _config;
+
 		protected bool OnStart<T>(ref T target) {
 
-			_configC = ConfigController.Instance;
+			_config = ConfigController.Instance.Config;
 
-			if (_configC == null || KeySection.Key == "")
+			if (_config == null || Section == "" || Key == "")
 				return false;
 
-			Value = _configC.GetValue (KeySection.Key, KeySection.Section);
-			if (Value == "")
+			if (!_config.TryGetValue (Section, Key, ref Value)) {
+				_error = "No such secttion in configuration file";
 				return false;
+			}
+
 
 			target = this.gameObject.GetComponentInChildren<T> ();
-			if (target == null)
+			if (target == null) {
+				_error = "No component!";
 				return false;
+			}
 
-			_eventC = _configC.gameObject.GetComponent<EventController> ();
-			if (_eventC == null)
-				return false;
-
-			_eventC.AddListener<ConfigChanged> (GetValue);
+			EventController.Instance.AddListener<ConfigChange> (GetValue);
 
 			return true;
 		}
 
-		public virtual void GetValue(ConfigChanged cc) {
-			if ((cc.FullConfig) || (cc.Key == KeySection.Key && cc.Section == KeySection.Section && cc.Value != Value)) {
-				Value = _configC.GetValue(KeySection.Key, KeySection.Section);
-			}
+		public virtual void GetValue(ConfigChange cc) {
+			if (cc.Full || (cc.Section == Section && cc.Key == Key))
+				Value = _config.GetValue (Section, Key);
 		}
 	}
 }

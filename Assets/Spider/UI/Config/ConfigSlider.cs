@@ -17,7 +17,7 @@ namespace Spdier.UI.Config {
 			float tmp;
 			if (!float.TryParse (Value, out tmp)) {
 				Debug.LogError(Value);
-				Debug.LogError("Bad format data at key: " + KeySection.Key + ( (KeySection.Section == "") ? "" : " / " + KeySection.Section) );
+				Debug.LogError("Bad format data at key: " + Key + "; section: " + Section );
 				return;
 			}
 			
@@ -26,11 +26,11 @@ namespace Spdier.UI.Config {
 		}
 
 		public void ChangeValue(float value) {
-			_configC.SetValue (KeySection.Key, value.ToString (), KeySection.Section);
+			_config.AddValue(Section, Key, value.ToString());
 			Value = value.ToString();
 		}
 
-		public override void GetValue (ConfigChanged cc)
+		public override void GetValue (ConfigChange cc)
 		{
 			base.GetValue (cc);
 			if (float.Parse (Value) == _s.value)
