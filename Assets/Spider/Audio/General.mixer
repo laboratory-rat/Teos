@@ -15,11 +15,11 @@ AudioMixerController:
   m_EnableSuspend: 1
   m_ExposedParameters:
   - guid: 7261bdfcfc09b184a9bb384b44e35187
-    name: BACKGROUND
+    name: MUSIC
   - guid: 87a197a64823fb8459c8f5b88d7ef266
     name: EFFECT
   - guid: 7fc58cde8f5967043b5a3f26a0bf05e8
-    name: MASTER
+    name: GENERAL
   - guid: aaf40b09d349c7d41b993ea029848143
     name: SOUND
   m_AudioMixerGroupViews:

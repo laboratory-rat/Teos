@@ -284,7 +284,7 @@ GameObject:
   - 114: {fileID: 2086132375}
   - 114: {fileID: 2086132374}
   - 114: {fileID: 2086132380}
-  - 114: {fileID: 2086132381}
+  - 114: {fileID: 2086132377}
   m_Layer: 0
   m_Name: Controller
   m_TagString: Controller
@@ -328,6 +328,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ErrorDirectory: Error
   SType: 3
+--- !u!114 &2086132377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2086132373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34d646500d9e7884f9b83e2d70854328, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ResetOnInit: 1
 --- !u!114 &2086132378
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,15 +376,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73334b0ea42708a479ab142922cb7784, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2086132381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2086132373}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4e36e7ef1978c644826ec3952e28134, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ResetOnInit: 1
